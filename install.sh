@@ -1,5 +1,5 @@
 #!/bin/bash
-# Growth by Design CEO AI Kit — Zero-Dependency Installer
+# Growth by Design CEO AI Kit — Installer
 # https://www.getfreshventures.com/ceo-ai-kit
 
 set -e
@@ -9,28 +9,31 @@ echo "║           Growth by Design™ CEO AI Kit Installer                ║"
 echo "╚═══════════════════════════════════════════════════════════════════╝"
 echo ""
 
-# Determine OS and Arch
-OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
-ARCH="$(uname -m)"
-
-if [[ "$OS" == "darwin" ]]; then
-  BINARY_URL="https://github.com/GetFresh-Ventures/homebrew-tap/releases/download/v1.55.0/create-gxd-macos"
-else
-  echo "❌ This zero-dependency installer currently supports macOS."
-  echo "   For Windows, download the executable directly from:"
-  echo "   https://github.com/GetFresh-Ventures/homebrew-tap/releases/download/v1.55.0/create-gxd-win.exe"
-  exit 1
+# 1. Ensure Homebrew is installed
+if ! command -v brew &> /dev/null; then
+  echo "📦 Homebrew not found. Installing Homebrew (required for dependencies)..."
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  
+  # Add brew to PATH for this session (common paths)
+  if [[ -d /opt/homebrew/bin ]]; then
+    export PATH="/opt/homebrew/bin:$PATH"
+  elif [[ -d /usr/local/bin ]]; then
+    export PATH="/usr/local/bin:$PATH"
+  fi
 fi
 
-TMP_BIN="/tmp/create-gxd-installer"
+# 2. Tap the public repository
+echo "🔗 Tapping GetFresh Ventures repository..."
+brew tap getfresh-ventures/tap
 
-echo "📦 Downloading the installer binary..."
-curl -sL "$BINARY_URL" -o "$TMP_BIN"
-chmod +x "$TMP_BIN"
+# 3. Install create-gxd (this automatically installs Node.js if missing)
+echo "📥 Installing the CEO AI Kit tools..."
+brew install getfresh-ventures/tap/create-gxd
 
-echo "🚀 Starting installation wizard..."
 echo ""
-"$TMP_BIN" "$@"
+echo "🚀 Installation complete! Starting the setup wizard..."
+echo ""
 
-# Cleanup
-rm -f "$TMP_BIN"
+# 4. Run the wizard
+create-gxd "$@"
+
